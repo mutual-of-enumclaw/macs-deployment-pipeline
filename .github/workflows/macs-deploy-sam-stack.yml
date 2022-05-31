@@ -42,6 +42,7 @@ jobs:
         [ -e .npmrc ] && cp .npmrc ~/.npmrc && echo "" >> ~/.npmrc
         echo "_authToken = ${{ secrets.JFROG_AUTH_TOKEN }}" >> ~/.npmrc
         echo "always-auth = true" >> ~/.npmrc
+        echo "legacy-peer-deps=true" >> ~/.npmrc
     
     - name: Microsoft Teams Deploy Card
       uses: patrickpaulin/ms-teams-deploy-card@master
