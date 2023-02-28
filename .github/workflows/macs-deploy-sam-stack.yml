@@ -13,6 +13,11 @@ on:
         required: true
         default: 'snd'
         type: string
+      node-build-version:
+        description: 'The version of node used in the build'
+        required: false
+        default: '16'
+        type: string
     secrets:
       JFROG_AUTH_TOKEN:
         required: true
@@ -32,6 +37,11 @@ jobs:
     steps:
     - name: Checkout
       uses: actions/checkout@v2
+
+    - name: set node version
+      uses: actions/setup-node@v2
+      with:
+        node-version: ${{ inputs.node-build-version}}
       
     - name: 'Create .npmrc'
       shell: bash
