@@ -43,10 +43,10 @@ jobs:
     - name: Checkout
       uses: actions/checkout@v2
 
-    - name: set node version
-      uses: actions/setup-node@v2
+    - name: Use Node.js ${{ inputs.node-build-version }}
+      uses: actions/setup-node@v3
       with:
-        node-version: ${{ inputs.node-build-version}}
+        node-version: ${{ inputs.node-build-version }}
       
     - name: 'Create .npmrc'
       shell: bash
@@ -81,7 +81,9 @@ jobs:
     
     - run: npm ci
 
-    - run: npm run test:coverage
+    - name: 'Run test with coverage'
+      if: ${{ inputs.environment_name == 'dev' }}
+      run: npm run test:coverage
 
     - name: Archive code coverage results
       uses: actions/upload-artifact@v3
@@ -93,6 +95,7 @@ jobs:
 
     - name: SonarCloud Scan
       uses: SonarSource/sonarcloud-github-action@master
+      if: ${{ inputs.environment_name == 'dev' }}
       env:
         GITHUB_TOKEN: ${{ secrets.DEPLOY_USER_GITHUB_TOKEN }}
         SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
