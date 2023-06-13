@@ -32,6 +32,8 @@ on:
         required: true
       MS_TEAMS_WEBHOOK_URI:
         required: false
+      SONAR_TOKEN:
+        required: true
 
 jobs:
   deploy:
