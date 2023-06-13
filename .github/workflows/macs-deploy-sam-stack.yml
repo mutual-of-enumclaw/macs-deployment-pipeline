@@ -16,7 +16,7 @@ on:
       node-build-version:
         description: 'The version of node used in the build'
         required: false
-        default: '16'
+        default: '14'
         type: string
       archive_coverage:
         description: 'Archives the code coverage results'
