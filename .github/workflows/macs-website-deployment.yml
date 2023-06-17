@@ -75,7 +75,24 @@ jobs:
         aws-region: ${{ inputs.region}}
 
     - run: npm ci
+
+    - run: npm run test:coverage
     
+    - name: Archive code coverage results
+      uses: actions/upload-artifact@v3
+      if:  ${{ always() && inputs.archive_coverage == true }}
+      with:
+        name: code-coverage-report
+        path: coverage/
+        retention-days: 5
+  
+    - name: SonarCloud Scan
+      uses: SonarSource/sonarcloud-github-action@master
+      if: ${{ inputs.environment_name == 'dev' }}
+      env:
+        GITHUB_TOKEN: ${{ secrets.DEPLOY_USER_GITHUB_TOKEN }}
+        SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+
     - name: SAM Deploy
       # for each env template we would change this from default to match the variables in the sameconfig.toml section.
       run: npm run deploy -- --config-env ${{ inputs.environment_name }}
@@ -93,22 +110,3 @@ jobs:
         custom: my environment variable
         requester: ${{ github.actor }}
         event-name: ${{ github.event_name }} 
-
-    - name: Archive code coverage results
-      uses: actions/upload-artifact@v3
-      if:  ${{ always() && inputs.archive_coverage == true }}
-      with:
-        name: code-coverage-report
-        path: coverage/
-        retention-days: 5
-  
-    - name: SonarCloud Scan
-      uses: SonarSource/sonarcloud-github-action@master
-      if: ${{ inputs.environment_name == 'dev' }}
-      env:
-        GITHUB_TOKEN: ${{ secrets.DEPLOY_USER_GITHUB_TOKEN }}
-        SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-    
-    - name: SAM Deploy
-      # for each env template we would change this from default to match the variables in the sameconfig.toml section.
-      run: npm run deploy -- --config-env ${{ inputs.environment_name }}
