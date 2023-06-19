@@ -13,6 +13,11 @@ on:
         required: true
         default: 'snd'
         type: string
+      node-build-version:
+        description: 'The version of node used in the build'
+        required: false
+        default: '14'
+        type: string
       codebuild_name:
         description: 'CodeBuild Name'
         required: true
@@ -43,6 +48,11 @@ jobs:
     - name: Checkout
       uses: actions/checkout@v2
       
+    - name: Use Node.js ${{ inputs.node-build-version }}
+      uses: actions/setup-node@v3
+      with:
+        node-version: ${{ inputs.node-build-version }}
+
     - name: 'Create .npmrc'
       shell: bash
       run: |
@@ -53,7 +63,8 @@ jobs:
         echo "//moetech.jfrog.io/artifactory/api/npm/macs-npm/:_authToken = ${{ secrets.JFROG_AUTH_TOKEN }}" >> ~/.npmrc
         echo "always-auth = true" >> ~/.npmrc
         echo "legacy-peer-deps=true" >> ~/.npmrc
-    
+
+
     - name: Microsoft Teams Deploy Card
       uses: patrickpaulin/ms-teams-deploy-card@master
       if: always()
