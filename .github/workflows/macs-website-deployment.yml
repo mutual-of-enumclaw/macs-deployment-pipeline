@@ -38,6 +38,8 @@ on:
         required: false
       SONAR_TOKEN:
         required: false
+      DEPLOY_USER_GITHUB_TOKEN:
+        required: false        
 jobs:
   deploy:
     name: Deploy stack to AWS
