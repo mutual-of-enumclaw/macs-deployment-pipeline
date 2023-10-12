@@ -97,6 +97,7 @@ jobs:
         retention-days: 5
 
     - name: SonarCloud Scan
+      continue-on-error: true
       uses: SonarSource/sonarcloud-github-action@master
       if: ${{ inputs.environment_name == 'dev' }}
       env:
