@@ -1,0 +1,136 @@
+name: SAM Build and Deploy
+
+on:
+  workflow_call:
+    inputs:
+      node-build-version:
+        description: 'The version of node used in the build'
+        required: false
+        default: '16'
+        type: string
+      prebuild-command:
+        description: 'Command to run before the build step'
+        required: false
+        type: string
+
+jobs:
+  prepare:
+    name: "Build and Test"
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: set node version
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ inputs.node-build-version}}
+
+      - name: 'Create .npmrc'
+        shell: bash
+        run: |
+            echo "Creating/Updating .npmrc in $PWD"
+            # Create a new .npmrc if there isn't one there already
+            [ ! -e .npmrc ] && echo "registry=https://moetech.jfrog.io/artifactory/api/npm/nucleus-npm/" > ~/.npmrc
+            [ -e .npmrc ] && cp .npmrc ~/.npmrc && echo "" >> ~/.npmrc
+            echo "//moetech.jfrog.io/artifactory/api/npm/nucleus-npm/:_authToken = ${{ secrets.JFROG_AUTH_TOKEN }}" >> ~/.npmrc
+            echo "always-auth = true" >> ~/.npmrc
+
+      - name: Configure AWS credentials
+        id: creds
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.MACS_SND_DEPLOY_USER_AWS_ACCESS_KEY_ID}}
+          aws-secret-access-key: ${{ secrets.MACS_SND_DEPLOY_USER_AWS_SECRET_ACCESS_KEY }}
+          aws-region: us-west-2
+
+      - run: npm ci
+      - run: npm run test:coverage --if-present
+
+      - name: SonarCloud Scan
+        uses: SonarSource/sonarcloud-github-action@master
+        env:
+          GITHUB_TOKEN: ${{ secrets.DEPLOY_USER_GITHUB_TOKEN }}
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+
+      - name: Prebuild
+        if: ${{ inputs.prebuild-command != '' }}
+        run: ${{ inputs.prebuild-command }}
+
+      - name: Build Package
+        run: npm run build-package -- --environments ${{ vars.ENVIRONMENTS }}
+
+      - name: Tar files
+        run: tar -cvf build-artifacts.tar ${{ github.workspace }}
+
+      - name: Archive build directory
+        uses: actions/upload-artifact@v3
+        with:
+          name: build-artifacts
+          path: build-artifacts.tar
+          retention-days: 30
+
+  Deploy:
+    name: Deploy ${{ matrix.stage }} ${{github.event.repository.name}}
+    permissions: {}
+    strategy:
+      matrix:
+        stage: ${{ fromJson(vars.ENVIRONMENTS_MATRIX) }}
+      fail-fast: true
+      max-parallel: 1
+    runs-on: ubuntu-latest
+    environment:
+      name: ${{ matrix.stage }}
+    needs: prepare
+    steps:
+      - name: set node version
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ inputs.node-build-version}}
+      - name: Download build artifacts
+        uses: actions/download-artifact@v3
+        with:
+          name: build-artifacts
+      - name: Extract files
+        run: tar -xf build-artifacts.tar
+      - name: Display structure of downloaded files
+        run: ls -R
+      - name: 'Create .npmrc'
+        shell: bash
+        run: |
+            echo "Creating/Updating .npmrc in $PWD"
+            # Create a new .npmrc if there isn't one there already
+            [ ! -e .npmrc ] && echo "registry=https://moetech.jfrog.io/artifactory/api/npm/nucleus-npm/" > ~/.npmrc
+            [ -e .npmrc ] && cp .npmrc ~/.npmrc && echo "" >> ~/.npmrc
+            echo "//moetech.jfrog.io/artifactory/api/npm/nucleus-npm/:_authToken = ${{ secrets.JFROG_AUTH_TOKEN }}" >> ~/.npmrc
+            echo "always-auth = true" >> ~/.npmrc
+
+      - name: Configure AWS credentials
+        id: creds
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets[vars.AWS_ACCESS_KEY_ID_SECRET_NAME] }}
+          aws-secret-access-key: ${{ secrets[vars.AWS_SECRET_ACCESS_KEY_SECRET_NAME] }}
+          aws-region: us-west-2
+      - name: Deploy
+        run: |
+          cd home/runner/work/${{ github.event.repository.name }}/${{ github.event.repository.name }}
+          npx samtsc --deploy-only --config-env ${{ matrix.stage }}
+
+      - name: Build and Deploy Website
+        if: ${{ vars.WEB_DEPLOYMENT_BUCKET_NAME_PARAM != '' && vars.AWS_REGION != '' }}
+        run: |
+          cd home/runner/work/${{ github.event.repository.name }}/${{ github.event.repository.name }}
+          if [[ "${{ vars.WEB_DEPLOYMENT_BUCKET_NAME_PARAM }}" == "s3://nuc-website-${{ matrix.stage }}-website" ]]; then
+            aws s3 sync "s3://nuc-core-${{ vars.STAGE_NAME }}-${{ vars.AWS_REGION }}-importlookupdata/data" ./src/assets/data --exact-timestamps
+          fi
+          npm run setEnv -- --region ${{ vars.AWS_REGION }} --stage ${{ matrix.stage }}
+          npm run build
+          npm run s3sync -- ${{ vars.WEB_DEPLOYMENT_BUCKET_NAME_PARAM }}
+      - name: Post Deploy
+        if: ${{ vars.POST_DEPLOY_COMMAND != '' }}
+        run: |
+          cd home/runner/work/${{ github.event.repository.name }}/${{ github.event.repository.name }}
+          ${{ vars.POST_DEPLOY_COMMAND }}
