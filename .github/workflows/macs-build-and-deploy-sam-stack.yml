@@ -33,9 +33,9 @@ jobs:
         run: |
             echo "Creating/Updating .npmrc in $PWD"
             # Create a new .npmrc if there isn't one there already
-            [ ! -e .npmrc ] && echo "registry=https://moetech.jfrog.io/artifactory/api/npm/nucleus-npm/" > ~/.npmrc
+            [ ! -e .npmrc ] && echo "registry=https://moetech.jfrog.io/artifactory/api/npm/macs-npm/" > ~/.npmrc
             [ -e .npmrc ] && cp .npmrc ~/.npmrc && echo "" >> ~/.npmrc
-            echo "//moetech.jfrog.io/artifactory/api/npm/nucleus-npm/:_authToken = ${{ secrets.JFROG_AUTH_TOKEN }}" >> ~/.npmrc
+            echo "//moetech.jfrog.io/artifactory/api/npm/macs-npm/:_authToken = ${{ secrets.JFROG_AUTH_TOKEN }}" >> ~/.npmrc
             echo "always-auth = true" >> ~/.npmrc
 
       - name: Configure AWS credentials
@@ -102,9 +102,9 @@ jobs:
         run: |
             echo "Creating/Updating .npmrc in $PWD"
             # Create a new .npmrc if there isn't one there already
-            [ ! -e .npmrc ] && echo "registry=https://moetech.jfrog.io/artifactory/api/npm/nucleus-npm/" > ~/.npmrc
+            [ ! -e .npmrc ] && echo "registry=https://moetech.jfrog.io/artifactory/api/npm/macs-npm/" > ~/.npmrc
             [ -e .npmrc ] && cp .npmrc ~/.npmrc && echo "" >> ~/.npmrc
-            echo "//moetech.jfrog.io/artifactory/api/npm/nucleus-npm/:_authToken = ${{ secrets.JFROG_AUTH_TOKEN }}" >> ~/.npmrc
+            echo "//moetech.jfrog.io/artifactory/api/npm/macs-npm/:_authToken = ${{ secrets.JFROG_AUTH_TOKEN }}" >> ~/.npmrc
             echo "always-auth = true" >> ~/.npmrc
 
       - name: Configure AWS credentials
