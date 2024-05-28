@@ -133,3 +133,12 @@ jobs:
         run: |
           cd home/runner/work/${{ github.event.repository.name }}/${{ github.event.repository.name }}
           ${{ vars.POST_DEPLOY_COMMAND }}
+
+      - name: Manage Release
+        uses: mutual-of-enumclaw/action-manage-release@v1
+        with:
+          DRAFT_RELEASE_ENV: tst
+          PUBLISH_RELEASE_ENV: acc
+          CURRENT_ENV: ${{ matrix.stage }}
+          VERSION_TYPE: patch
+          GITHUB_TOKEN: ${{ secrets.DEPLOY_USER_GITHUB_TOKEN }}
