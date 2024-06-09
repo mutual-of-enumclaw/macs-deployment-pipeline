@@ -74,7 +74,8 @@ jobs:
 
   Deploy:
     name: Deploy ${{ matrix.stage }} ${{github.event.repository.name}}
-    permissions: {}
+    permissions: 
+      contents: write
     strategy:
       matrix:
         stage: ${{ fromJson(vars.ENVIRONMENTS_MATRIX) }}
@@ -89,7 +90,7 @@ jobs:
         with:
           node-version: ${{ inputs.node-build-version}}
       - name: Download build artifacts
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           name: build-artifacts
       - name: Extract files
