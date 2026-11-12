@@ -16,7 +16,7 @@ on:
       node-build-version:
         description: 'The version of node used in the build'
         required: false
-        default: '14'
+        default: '24.x'
         type: string
       archive_coverage:
         description: 'Archives the code coverage results'
@@ -44,10 +44,10 @@ jobs:
       env-name: ${{ steps.env-name.outputs.environment }}
     steps:
     - name: Checkout
-      uses: actions/checkout@v4
+      uses: actions/checkout@v7
 
     - name: Use Node.js ${{ inputs.node-build-version }}
-      uses: actions/setup-node@v4
+      uses: actions/setup-node@v7
       with:
         node-version: ${{ inputs.node-build-version }}
 
@@ -89,7 +89,7 @@ jobs:
       run: npm run test:coverage
 
     - name: Archive code coverage results
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v7
       if:  ${{ always() && inputs.archive_coverage == true }}
       with:
         name: code-coverage-report

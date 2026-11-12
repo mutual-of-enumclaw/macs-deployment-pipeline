@@ -6,7 +6,7 @@ on:
       node-build-version:
         description: 'The version of node used in the build'
         required: false
-        default: '16'
+        default: '24.x'
         type: string
       prebuild-command:
         description: 'Command to run before the build step'
@@ -21,10 +21,10 @@ jobs:
       contents: read
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: set node version
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v7
         with:
           node-version: ${{ inputs.node-build-version}}
 
@@ -66,7 +66,7 @@ jobs:
         run: tar -cvf build-artifacts.tar ${{ github.workspace }}
 
       - name: Archive build directory
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: build-artifacts
           path: build-artifacts.tar
@@ -86,11 +86,11 @@ jobs:
     needs: prepare
     steps:
       - name: set node version
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v7
         with:
           node-version: ${{ inputs.node-build-version}}
       - name: Download build artifacts
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           name: build-artifacts
       - name: Extract files
