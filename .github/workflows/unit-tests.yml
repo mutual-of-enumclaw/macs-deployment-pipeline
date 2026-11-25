@@ -11,7 +11,7 @@ on:
         description: 'The version(s) of node to run unit tests with'
         required: false
         type: string
-        default: '14.x'
+        default: '24.x'
       region:
         description: 'AWS Region'
         type: string
@@ -64,7 +64,7 @@ jobs:
         run: echo "$GITHUB_ENV"
 
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         with:
           submodules: recursive
 
@@ -88,7 +88,7 @@ jobs:
           echo "always-auth = true" >> ~/.npmrc
 
       - name: Use Node.js ${{ matrix.node-version }} on ${{ matrix.os }}
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v7
         with:
           node-version: ${{ matrix.node-version }}
 
